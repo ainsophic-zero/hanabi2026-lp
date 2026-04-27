@@ -468,6 +468,9 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
   letter-spacing: .1em;
 }
 
+/* 料金モード切り替え：[data-regular] はデフォルト非表示（JSが有効化するまで） */
+[data-regular] { display: none; }
+
 /* お子様料金 */
 .kids {
   margin-top: 48px;

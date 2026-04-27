@@ -93,40 +93,26 @@
   });
 
   /* ----- 6. 早期申込 ↔ 通常料金 自動切り替え（JST 2026/8/1 00:00 〜）----- */
+  // [data-early]   = 早期申込専用の要素（〜7月末：表示 / 8月以降：非表示）
+  // [data-regular] = 通常料金専用の要素（〜7月末：非表示 / 8月以降：表示）
   function applyPricingMode() {
-    // JST で現在日時を判定
-    const nowJST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-    const cutoff  = new Date('2026-08-01T00:00:00+09:00');
+    const nowJST   = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+    const cutoff   = new Date('2026-08-01T00:00:00+09:00');
     const isRegular = nowJST >= cutoff;
 
-    // [data-early]  = 早期申込専用の要素
-    // [data-regular] = 通常料金専用の要素
+    // 早期要素：8月以降は非表示
     document.querySelectorAll('[data-early]').forEach(el => {
       el.style.display = isRegular ? 'none' : '';
     });
+
+    // 通常要素：8月以降に表示 ＆ ボタンを Primary に昇格
     document.querySelectorAll('[data-regular]').forEach(el => {
-      // 通常料金ボタンは 8/1 以降に Primary に格上げ
-      if (isRegular && el.classList.contains('btn--ghost')) {
+      el.style.display = isRegular ? '' : 'none';
+      if (isRegular) {
         el.classList.remove('btn--ghost');
         el.classList.add('btn--primary');
       }
-      if (!isRegular && el.classList.contains('btn--primary') && el.hasAttribute('data-regular')) {
-        el.classList.remove('btn--primary');
-        el.classList.add('btn--ghost');
-      }
     });
-
-    // セクションタイトルの「早期」テキストも切り替え
-    const leadEls = document.querySelectorAll('.plan__price-label');
-    leadEls.forEach(el => {
-      if (isRegular && el.textContent.includes('早期')) {
-        el.closest('[data-early]')?.style;  // already hidden above
-      }
-    });
-
-    // 申込セクションの注釈を更新
-    const earlyNote = document.querySelector('.apply__early-note');
-    if (earlyNote) earlyNote.style.display = isRegular ? 'none' : '';
   }
   applyPricingMode();
   // 日をまたいだ場合に備えて1時間ごとに再チェック
