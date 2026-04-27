@@ -627,6 +627,9 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
   backdrop-filter: blur(12px);
 }
 .apply__box h2 { margin-bottom: 16px; }
+@media (min-width: 768px) {
+  .apply__box h2 { font-size: 26px; white-space: nowrap; }
+}
 .apply__box p { color: var(--text-sub); margin-bottom: 24px; font-size: 15px; }
 .apply__items {
   display: flex;
