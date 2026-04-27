@@ -24,4 +24,5 @@ jobs:
           wrangler pages deploy . \
             --project-name=hanabi2026 \
             --branch=main \
-            --commit-dirty=true
+            --commit-dirty=true \
+            --commit-message="deploy: ${{ github.sha }}"
