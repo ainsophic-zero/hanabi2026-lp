@@ -30,11 +30,17 @@ body {
   font-family: var(--font-sans);
   color: var(--text);
   background: var(--bg-deep);
-  line-height: 1.8;
+  line-height: 1.9;
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  overflow-wrap: break-word;
+  word-break: keep-all; /* 日本語：単語の途中で改行しない */
+}
+/* PC：本文を少し大きく */
+@media (min-width: 768px) {
+  body { font-size: 17px; }
 }
 img { max-width: 100%; height: auto; display: block; }
 a { color: var(--gold); text-decoration: none; transition: opacity .2s; }
@@ -1076,9 +1082,20 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
    ========================================================= */
 .past-events__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: auto auto;
+  gap: 20px;
   margin-top: 40px;
+}
+/* 動画は上段2列 */
+.past-events__item--video { grid-column: span 1; }
+/* 写真は下段3列 */
+.past-events__item--photo { }
+@media (min-width: 768px) {
+  .past-events__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .past-events__item--video { grid-column: span 1; }
 }
 .past-events__video {
   position: relative;
@@ -1093,6 +1110,17 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
   width: 100%;
   height: 100%;
   border: none;
+}
+.past-events__item--photo img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  display: block;
+}
+@media (max-width: 767px) {
+  .past-events__grid { grid-template-columns: 1fr; }
+  .past-events__item--photo img { height: 200px; }
 }
 
 /* =========================================================
