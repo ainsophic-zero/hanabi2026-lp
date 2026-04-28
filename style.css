@@ -162,48 +162,56 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
   margin-bottom: 24px;
 }
 
-/* presents ロゴエリア */
+/* presents ロゴエリア（中央揃え・スマホで横幅いっぱいに広がる） */
 .hero__presents {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  text-align: center;
 }
 .hero__logos {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 8px;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 .hero__logo {
-  background: rgba(255,255,255,0.95);
-  border-radius: 10px;
-  padding: 7px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.3);
+  background: rgba(255,255,255,0.96);
+  border-radius: 12px;
+  padding: 9px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
 }
+/* スマホ：画面幅にフィットするように calc で算出（左右24pxのpadding分を引く） */
 .hero__logo--heiwa {
-  width: 64px;
-  height: 64px;
+  /* 1:1 - 全体幅から「×」と miraigift と gap を引いて2分割 */
+  width: clamp(96px, calc((100vw - 48px - 130px - 32px) * 0.45), 110px);
+  aspect-ratio: 1 / 1;
+  height: auto;
   object-fit: contain;
 }
 .hero__logo--miraigift {
-  width: 84px;
-  height: 64px;
+  width: clamp(120px, calc((100vw - 48px - 32px) * 0.55), 140px);
+  aspect-ratio: 1.3 / 1;
+  height: auto;
   object-fit: contain;
 }
 .hero__logo-x {
   color: var(--gold);
-  font-size: 20px;
+  font-size: 26px;
   font-family: var(--font-serif);
   font-weight: 600;
+  flex-shrink: 0;
 }
 .hero__presents-text {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: .15em;
   color: var(--text-sub);
 }
 @media (min-width: 768px) {
-  .hero__logo--heiwa { width: 80px; height: 80px; }
-  .hero__logo--miraigift { width: 104px; height: 80px; }
-  .hero__presents-text { font-size: 14px; }
+  .hero__logo--heiwa { width: 110px; }
+  .hero__logo--miraigift { width: 144px; }
+  .hero__logo-x { font-size: 30px; }
+  .hero__presents-text { font-size: 15px; }
 }
 
 .hero__title {
