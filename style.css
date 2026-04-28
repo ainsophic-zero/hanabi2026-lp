@@ -174,36 +174,36 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
 }
 .hero__logo {
   background: rgba(255,255,255,0.95);
-  border-radius: 8px;
-  padding: 5px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  border-radius: 10px;
+  padding: 7px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.3);
 }
 .hero__logo--heiwa {
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
 }
 .hero__logo--miraigift {
-  width: 58px;
-  height: 44px;
+  width: 84px;
+  height: 64px;
   object-fit: contain;
 }
 .hero__logo-x {
   color: var(--gold);
-  font-size: 16px;
+  font-size: 20px;
   font-family: var(--font-serif);
   font-weight: 600;
 }
 .hero__presents-text {
   margin: 0;
-  font-size: 12px;
-  letter-spacing: .12em;
+  font-size: 13px;
+  letter-spacing: .15em;
   color: var(--text-sub);
 }
 @media (min-width: 768px) {
-  .hero__logo--heiwa { width: 52px; height: 52px; }
-  .hero__logo--miraigift { width: 68px; height: 52px; }
-  .hero__presents-text { font-size: 13px; }
+  .hero__logo--heiwa { width: 80px; height: 80px; }
+  .hero__logo--miraigift { width: 104px; height: 80px; }
+  .hero__presents-text { font-size: 14px; }
 }
 
 .hero__title {
@@ -218,10 +218,13 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
 }
 .hero__location {
   font-family: var(--font-serif);
-  font-size: clamp(20px, 3vw, 28px);
+  font-size: clamp(20px, 3vw, 32px);
   color: var(--gold-2);
   margin: 0 0 28px;
   letter-spacing: .05em;
+  /* タイトルとバランスを取るため右寄せ。max-width はタイトル幅に合わせる */
+  text-align: right;
+  max-width: min(900px, 92%);
 }
 .hero__title em {
   font-style: normal;
