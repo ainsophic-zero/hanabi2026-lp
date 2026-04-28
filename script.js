@@ -113,9 +113,121 @@
         el.classList.add('btn--primary');
       }
     });
+
+    // カート内の価格スパン切替
+    document.querySelectorAll('[data-price-early]').forEach(el => {
+      el.hidden = isRegular;
+    });
+    document.querySelectorAll('[data-price-regular]').forEach(el => {
+      el.hidden = !isRegular;
+    });
   }
   applyPricingMode();
   // 日をまたいだ場合に備えて1時間ごとに再チェック
   setInterval(applyPricingMode, 3_600_000);
+
+  /* ----- 7. カート（複数アイテムまとめ決済）----- */
+  function setupCart() {
+    const cart = document.querySelector('.cart');
+    if (!cart) return;
+
+    const totalEl = document.getElementById('cart-total');
+    const submitBtn = document.getElementById('cart-submit');
+    const submitText = document.getElementById('cart-submit-text');
+    const errorEl = document.getElementById('cart-error');
+
+    function isRegularPricing() {
+      const nowJST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+      return nowJST >= new Date('2026-08-01T00:00:00+09:00');
+    }
+
+    function getQty(row) {
+      return parseInt(row.querySelector('.cart__qty-input')?.value || '0', 10) || 0;
+    }
+    function setQty(row, val) {
+      const input = row.querySelector('.cart__qty-input');
+      if (!input) return;
+      const v = Math.max(0, Math.min(50, val | 0));
+      input.value = v;
+    }
+
+    function getRowPrice(row) {
+      const isRegular = isRegularPricing();
+      const earlyEl = row.querySelector('[data-price-early]');
+      const regEl = row.querySelector('[data-price-regular]');
+      const useEl = isRegular && regEl ? regEl : earlyEl;
+      return useEl ? parseInt(useEl.textContent.replace(/[^\d]/g, ''), 10) || 0 : 0;
+    }
+
+    function recompute() {
+      let total = 0;
+      let totalQty = 0;
+      cart.querySelectorAll('.cart__row').forEach(row => {
+        const qty = getQty(row);
+        const price = getRowPrice(row);
+        total += qty * price;
+        totalQty += qty;
+      });
+      if (totalEl) totalEl.textContent = total.toLocaleString('ja-JP');
+      if (total > 0) {
+        submitBtn.disabled = false;
+        submitText.textContent = `${total.toLocaleString('ja-JP')}円を決済する（${totalQty}名分）`;
+      } else {
+        submitBtn.disabled = true;
+        submitText.textContent = '数量を選択してください';
+      }
+    }
+
+    // ＋／−ボタン & 直接入力
+    cart.querySelectorAll('.cart__row').forEach(row => {
+      const minus = row.querySelector('[data-qty-minus]');
+      const plus = row.querySelector('[data-qty-plus]');
+      const input = row.querySelector('.cart__qty-input');
+      if (minus) minus.addEventListener('click', () => { setQty(row, getQty(row) - 1); recompute(); });
+      if (plus)  plus.addEventListener('click',  () => { setQty(row, getQty(row) + 1); recompute(); });
+      if (input) input.addEventListener('input', () => { setQty(row, parseInt(input.value, 10) || 0); recompute(); });
+    });
+
+    // 決済へ進む
+    submitBtn.addEventListener('click', async () => {
+      const items = [];
+      cart.querySelectorAll('.cart__row').forEach(row => {
+        const qty = getQty(row);
+        const courseId = row.dataset.course;
+        if (qty > 0 && courseId && courseId !== 'kid-infant') {
+          items.push({ courseId, qty });
+        }
+      });
+      if (items.length === 0) return;
+
+      submitBtn.disabled = true;
+      submitText.textContent = '決済リンクを生成中…';
+      if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items }),
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || '決済リンクの生成に失敗しました');
+        }
+      } catch (err) {
+        if (errorEl) {
+          errorEl.hidden = false;
+          errorEl.textContent = `エラー: ${err.message}。お手数ですが少し時間をおいて再度お試しください。`;
+        }
+        submitBtn.disabled = false;
+        recompute();
+      }
+    });
+
+    recompute();
+  }
+  setupCart();
 
 })();

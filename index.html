@@ -427,38 +427,77 @@
         <h2>一緒に、最高のお祭りをつくりましょう。 🎆</h2>
         <p>参加コースを選んでそのまま決済へ進めます。<br />クレジットカード（Square）または銀行振込がご利用いただけます。</p>
 
-        <div class="apply__courses">
-          <div class="apply__course-group">
-            <div class="apply__course-label">基本コース｜村日帰り</div>
-            <div class="apply__course-btns">
-              <a href="https://square.link/u/6MBI0Hgi" class="btn btn--primary" target="_blank" rel="noopener" data-early>
-                早期申込 <strong>150,000円</strong><small>〜7月末</small>
-              </a>
-              <a href="https://square.link/u/dH1DzJOT" class="btn btn--ghost" target="_blank" rel="noopener" data-regular>
-                通常申込 <strong>175,000円</strong>
-              </a>
+        <!-- カート式 申込フォーム -->
+        <div class="cart">
+          <p class="cart__intro">参加されるコース・人数を選んで <strong>1回でまとめて決済</strong>できます。</p>
+
+          <div class="cart__items">
+            <div class="cart__row" data-course="basic">
+              <div class="cart__info">
+                <div class="cart__name">基本コース｜村日帰り</div>
+                <div class="cart__price"><span data-price-early>150,000</span><span data-price-regular hidden>175,000</span>円<small data-early>（早期）</small></div>
+              </div>
+              <div class="cart__qty">
+                <button type="button" class="cart__qty-btn" data-qty-minus>−</button>
+                <input type="number" class="cart__qty-input" value="0" min="0" max="50" inputmode="numeric" />
+                <button type="button" class="cart__qty-btn" data-qty-plus>＋</button>
+              </div>
+            </div>
+
+            <div class="cart__row" data-course="well">
+              <div class="cart__info">
+                <div class="cart__name">井戸掘り参加・村宿泊コース</div>
+                <div class="cart__price"><span data-price-early>180,000</span><span data-price-regular hidden>200,000</span>円<small data-early>（早期）</small></div>
+              </div>
+              <div class="cart__qty">
+                <button type="button" class="cart__qty-btn" data-qty-minus>−</button>
+                <input type="number" class="cart__qty-input" value="0" min="0" max="50" inputmode="numeric" />
+                <button type="button" class="cart__qty-btn" data-qty-plus>＋</button>
+              </div>
+            </div>
+
+            <div class="cart__row" data-course="kid-elem">
+              <div class="cart__info">
+                <div class="cart__name">小中学生</div>
+                <div class="cart__price"><span data-price-early>110,000</span>円</div>
+              </div>
+              <div class="cart__qty">
+                <button type="button" class="cart__qty-btn" data-qty-minus>−</button>
+                <input type="number" class="cart__qty-input" value="0" min="0" max="50" inputmode="numeric" />
+                <button type="button" class="cart__qty-btn" data-qty-plus>＋</button>
+              </div>
+            </div>
+
+            <div class="cart__row" data-course="kid-pre">
+              <div class="cart__info">
+                <div class="cart__name">未就学児（食事・席あり）</div>
+                <div class="cart__price"><span data-price-early>55,000</span>円</div>
+              </div>
+              <div class="cart__qty">
+                <button type="button" class="cart__qty-btn" data-qty-minus>−</button>
+                <input type="number" class="cart__qty-input" value="0" min="0" max="50" inputmode="numeric" />
+                <button type="button" class="cart__qty-btn" data-qty-plus>＋</button>
+              </div>
+            </div>
+
+            <div class="cart__row cart__row--free" data-course="kid-infant">
+              <div class="cart__info">
+                <div class="cart__name">2歳未満（食事・席なし）<span class="cart__badge">無料</span></div>
+                <div class="cart__price"><small>※同伴申告のみ。決済は不要です</small></div>
+              </div>
             </div>
           </div>
 
-          <div class="apply__course-group">
-            <div class="apply__course-label">井戸掘り参加・村宿泊コース</div>
-            <div class="apply__course-btns">
-              <a href="https://square.link/u/FObShZKu" class="btn btn--primary" target="_blank" rel="noopener" data-early>
-                早期申込 <strong>180,000円</strong><small>〜7月末</small>
-              </a>
-              <a href="https://square.link/u/I1SxmvuU" class="btn btn--ghost" target="_blank" rel="noopener" data-regular>
-                通常申込 <strong>200,000円</strong>
-              </a>
-            </div>
+          <div class="cart__summary">
+            <div class="cart__total-label">合計</div>
+            <div class="cart__total-amount"><span id="cart-total">0</span>円</div>
           </div>
 
-          <div class="apply__course-group apply__course-group--kids">
-            <div class="apply__course-label">お子様料金</div>
-            <div class="apply__course-btns">
-              <a href="https://square.link/u/tlnwk06C" class="btn btn--ghost" target="_blank" rel="noopener">小中学生 <strong>110,000円</strong></a>
-              <a href="https://square.link/u/5jV9O2SD" class="btn btn--ghost" target="_blank" rel="noopener">未就学児 <strong>55,000円</strong></a>
-            </div>
-          </div>
+          <button type="button" class="btn btn--primary cart__submit" id="cart-submit" disabled>
+            <span id="cart-submit-text">数量を選択してください</span>
+          </button>
+          <p class="cart__note">クレジットカード決済（Square）の画面に進みます。</p>
+          <p class="cart__error" id="cart-error" hidden></p>
         </div>
 
         <!-- LINE グループ案内 -->

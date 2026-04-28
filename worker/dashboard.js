@@ -13,6 +13,24 @@ const LOCATION_ID = 'LDF0BDGH0XHPJ';
 const SQUARE_API  = 'https://connect.squareup.com/v2';
 const PASSWORD    = 'hanabi';
 const HANABI_TAG  = 'カンボジア花火2026';   // Line item名フィルタ
+const LINE_URL    = 'https://line.me/ti/g/ea9AdppvxE';
+const REDIRECT_URL = 'https://hanabi2026.agsymphony.net/thanks.html';
+
+// ── コース定義（サーバー側で価格を保持。クライアント送信値は信用しない）─
+// 早期/通常の判定はサーバー側で日付チェック（JST 2026-08-01）
+const COURSE_CATALOG = {
+  'basic':       { label: 'カンボジア花火2026｜基本コース（村日帰り）',         early: 150000, regular: 175000 },
+  'well':        { label: 'カンボジア花火2026｜井戸掘り・村宿泊コース',          early: 180000, regular: 200000 },
+  'kid-elem':    { label: 'カンボジア花火2026｜小中学生',                          early: 110000, regular: 110000 },
+  'kid-pre':     { label: 'カンボジア花火2026｜未就学児',                          early: 55000,  regular: 55000  },
+  'kid-infant':  { label: 'カンボジア花火2026｜2歳未満（食事・席なし）',           early: 0,      regular: 0      },
+};
+
+function isRegularPricing() {
+  // JST で 2026-08-01 00:00 以降は通常料金
+  const cutoff = Date.UTC(2026, 7, 1) - 9 * 60 * 60 * 1000; // JST=UTC+9
+  return Date.now() >= cutoff;
+}
 
 // ── コース名の整形 ────────────────────────────────────────────
 const COURSE_MAP = {
@@ -250,12 +268,125 @@ ${allRows.length === 0
 </body></html>`;
 }
 
+// ── /api/checkout: 複数アイテムをまとめて Square 決済リンク生成 ─────
+async function handleCheckout(request, env) {
+  const token = env.SQUARE_ACCESS_TOKEN;
+  if (!token) {
+    return jsonResponse({ success: false, error: 'Square token not configured' }, 500);
+  }
+  if (request.method !== 'POST') {
+    return jsonResponse({ success: false, error: 'Method not allowed' }, 405);
+  }
+
+  /** @type {{ items: Array<{ courseId: string, qty: number }> }} */
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ success: false, error: 'Invalid JSON' }, 400);
+  }
+
+  const items = Array.isArray(body?.items) ? body.items : [];
+  if (items.length === 0) {
+    return jsonResponse({ success: false, error: 'カートが空です' }, 400);
+  }
+
+  // line_items を構築（サーバー側カタログから価格を引く）
+  const isRegular = isRegularPricing();
+  const lineItems = [];
+  for (const it of items) {
+    const cat = COURSE_CATALOG[it?.courseId];
+    const qty = parseInt(it?.qty, 10) || 0;
+    if (!cat || qty <= 0) continue;
+    if (qty > 50) {
+      return jsonResponse({ success: false, error: '数量が多すぎます' }, 400);
+    }
+    const price = isRegular ? cat.regular : cat.early;
+    const suffix = (cat.early !== cat.regular) ? (isRegular ? ' 通常' : ' 早期') : '';
+    lineItems.push({
+      name: `${cat.label}${suffix}`,
+      quantity: String(qty),
+      base_price_money: { amount: price, currency: 'JPY' },
+    });
+  }
+
+  if (lineItems.length === 0) {
+    return jsonResponse({ success: false, error: '有効な商品がありません' }, 400);
+  }
+
+  // 合計金額計算（無料コース＝2歳未満のみの場合は決済不要）
+  const total = lineItems.reduce((sum, li) => sum + li.base_price_money.amount * parseInt(li.quantity, 10), 0);
+  if (total <= 0) {
+    return jsonResponse({ success: false, error: '無料コースのみのお申込みは別途ご連絡ください' }, 400);
+  }
+
+  // Square 決済リンク作成
+  const description = `カンボジア花火2026 お申込み。決済完了後、参加者専用LINEグループにご参加ください。${LINE_URL}`;
+  const payload = {
+    idempotency_key: crypto.randomUUID(),
+    order: {
+      location_id: LOCATION_ID,
+      line_items: lineItems,
+    },
+    checkout_options: {
+      redirect_url: REDIRECT_URL,
+      ask_for_shipping_address: false,
+    },
+    description,
+  };
+
+  const sqRes = await sq('/online-checkout/payment-links', 'POST', payload, token);
+  if (!sqRes?.payment_link?.url) {
+    return jsonResponse({
+      success: false,
+      error: 'Square決済リンクの作成に失敗しました',
+      detail: sqRes?.errors || sqRes,
+    }, 502);
+  }
+
+  return jsonResponse({
+    success: true,
+    url: sqRes.payment_link.url,
+    total,
+    items: lineItems.map(li => ({ name: li.name, qty: li.quantity, price: li.base_price_money.amount })),
+  });
+}
+
+function jsonResponse(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
 // ── メインハンドラー ──────────────────────────────────────────
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // 公開API：/api/checkout（Basic認証スキップ）
+    if (url.pathname === '/api/checkout') {
+      if (request.method === 'OPTIONS') {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+          },
+        });
+      }
+      return handleCheckout(request, env);
+    }
+
+    // ダッシュボードはBasic Auth必須
     if (!checkAuth(request)) return unauthorized();
 
-    const url    = new URL(request.url);
     const method = request.method;
     const kv     = env.HANABI_KV;
     const token  = env.SQUARE_ACCESS_TOKEN;
