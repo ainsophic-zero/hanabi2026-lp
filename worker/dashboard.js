@@ -146,7 +146,12 @@ function renderHTML({ squareRows, manualRows, updatedAt }) {
     ...completed.map(r => r.amt),
     ...manualRows.map(r => r.amt),
   ].reduce((s, n) => s + n, 0);
+  // 取引件数
   const totalCount = completed.length + manualRows.length;
+  // 合計人数（複数申込にも対応）
+  const totalPeople =
+    completed.reduce((s, r) => s + (r.totalQty || 1), 0) +
+    manualRows.reduce((s, r) => s + (parseInt(r.qty, 10) || 1), 0);
 
   const courseOptions = [
     '基本コース｜早期（150,000円）',
@@ -161,7 +166,15 @@ function renderHTML({ squareRows, manualRows, updatedAt }) {
 
   const tableRows = allRows.map(r => {
     const isManual = r.source === 'manual';
-    const course = r.course || '-';
+    // 複数アイテムなら各バッジを並べる、単一なら従来通り
+    const courseHTML = (!isManual && Array.isArray(r.items) && r.items.length > 0)
+      ? r.items.map(it =>
+          `<span class="badge" style="color:${it.color||'#C9CFE2'};margin-right:4px;display:inline-block">${it.label}${it.qty > 1 ? `<strong style="color:var(--gold);margin-left:4px">×${it.qty}</strong>` : ''}</span>`
+        ).join('')
+      : `<span class="badge" style="color:${r.color||'#C9CFE2'}">${r.course || '-'}</span>`;
+    const peopleCell = (r.totalQty && r.totalQty > 1)
+      ? `<strong style="color:var(--gold)">${r.totalQty}名</strong>`
+      : (isManual ? `${parseInt(r.qty, 10) || 1}名` : '1名');
     const delBtn = isManual
       ? `<form method="POST" action="/dashboard/delete" style="display:inline">
            <input type="hidden" name="id" value="${r.id}" />
@@ -181,7 +194,8 @@ function renderHTML({ squareRows, manualRows, updatedAt }) {
 <tr>
   <td>${r.date}${sourceTag}</td>
   <td class="hide-sp" style="font-size:12px">${r.email || '-'}</td>
-  <td><span class="badge" style="color:${r.color||'#C9CFE2'}">${course}</span></td>
+  <td>${courseHTML}</td>
+  <td style="text-align:center">${peopleCell}</td>
   <td style="text-align:right;font-family:monospace">${amtStr}</td>
   <td>${statusBadge}</td>
   <td class="hide-sp">${r.memo || (r.receiptUrl ? `<a href="${r.receiptUrl}" target="_blank" rel="noopener" style="color:var(--gold);font-size:12px">領収書</a>` : '-')}</td>
@@ -203,9 +217,10 @@ ${css()}
 <p class="sub">最終更新: ${updatedAt}　<a href="/dashboard" style="color:var(--gold);font-size:12px">↻ 更新</a></p>
 
 <div class="stats">
-  <div class="stat"><div class="stat__num">${totalCount}</div><div class="stat__label">申込件数（Square完了＋銀振）</div></div>
+  <div class="stat"><div class="stat__num">${totalCount}</div><div class="stat__label">申込件数</div></div>
+  <div class="stat"><div class="stat__num">${totalPeople}<small style="font-size:.5em;color:var(--text-sub);margin-left:6px">名</small></div><div class="stat__label">合計人数</div></div>
   <div class="stat"><div class="stat__num">¥${totalAmt.toLocaleString()}</div><div class="stat__label">累計受入額</div></div>
-  <div class="stat"><div class="stat__num">${50 - totalCount}</div><div class="stat__label">残席（定員50名）</div></div>
+  <div class="stat"><div class="stat__num">${Math.max(0, 50 - totalPeople)}</div><div class="stat__label">残席（定員50名）</div></div>
 </div>
 
 <!-- 銀行振込手動追加 -->
@@ -230,6 +245,10 @@ ${css()}
         <select name="course">${courseOptions}</select>
       </div>
       <div class="form-group">
+        <label>人数</label>
+        <input type="number" name="qty" placeholder="1" min="1" max="50" value="1" />
+      </div>
+      <div class="form-group">
         <label>金額（円）</label>
         <input type="number" name="amount" placeholder="150000" min="0" />
       </div>
@@ -252,7 +271,8 @@ ${allRows.length === 0
 <thead><tr>
   <th>日時(JST)</th>
   <th class="hide-sp">メール</th>
-  <th>コース</th>
+  <th>コース内訳</th>
+  <th style="text-align:center">人数</th>
   <th style="text-align:right">金額</th>
   <th>状態</th>
   <th class="hide-sp">メモ/領収書</th>
@@ -396,6 +416,7 @@ export default {
       const body = await request.formData();
       const entries = await getManual(kv);
       const amt = parseInt(body.get('amount') || '0', 10);
+      const qty = Math.max(1, parseInt(body.get('qty') || '1', 10) || 1);
       const entry = {
         id:      crypto.randomUUID(),
         date:    body.get('date') || '',
@@ -405,6 +426,7 @@ export default {
         course:  body.get('course') || '',
         color:   '#93c5fd',
         amt,
+        qty,
         memo:    body.get('memo') || '',
         status:  'manual',
         createdAt: new Date().toISOString(),
@@ -460,8 +482,19 @@ export default {
         })
         .map(p => {
           const order    = ordersMap[p.order_id] || {};
-          const rawName  = order.line_items?.[0]?.name || '';
-          const course   = parseCourse(rawName);
+          const lineItems = (order.line_items || []).filter(li => li.name?.includes(HANABI_TAG));
+          // 全アイテムを {label, qty, color, badge} に展開
+          const items = lineItems.map(li => {
+            const c = parseCourse(li.name || '');
+            const qty = parseInt(li.quantity || '1', 10) || 1;
+            return { label: c.label, badge: c.badge, color: c.color, qty };
+          });
+          const totalQty = items.reduce((s, it) => s + it.qty, 0);
+          // 表示用：1件なら「コース名」、複数なら「コース×2 / コース×1」形式
+          const courseDisplay = items.length === 1 && items[0].qty === 1
+            ? items[0].label
+            : items.map(it => `${it.label}×${it.qty}`).join(' / ');
+          const primaryColor = items[0]?.color || '#8C95B7';
           const created  = new Date(p.created_at);
           const date     = created.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
           return {
@@ -469,8 +502,10 @@ export default {
             rawDate:    p.created_at,
             date,
             email:      p.buyer_email_address || '-',
-            course:     course.label,
-            color:      course.color,
+            course:     courseDisplay,
+            items,            // ← 詳細用
+            totalQty,         // ← 合計人数
+            color:      primaryColor,
             amt:        p.amount_money?.amount || 0,
             status:     p.status,
             receiptUrl: p.receipt_url || '',
