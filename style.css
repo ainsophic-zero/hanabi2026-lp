@@ -213,6 +213,8 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 2px 6px rgba(245,196,81,.25));
+  /* 視覚的バランス補正：右側のミライギフトが長いので左に流れて見えるのを補正 */
+  transform: translateX(0.4em);
 }
 .hero__presents-jp em {
   font-style: normal;
