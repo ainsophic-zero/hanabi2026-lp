@@ -174,36 +174,36 @@ h3 { font-size: clamp(18px, 2.4vw, 22px); margin: 0 0 8px; line-height: 1.5; }
 }
 .hero__logo {
   background: rgba(255,255,255,0.95);
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
 }
 .hero__logo--heiwa {
-  width: 76px;
-  height: 76px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
 }
 .hero__logo--miraigift {
-  width: 100px;
-  height: 76px;
+  width: 58px;
+  height: 44px;
   object-fit: contain;
 }
 .hero__logo-x {
   color: var(--gold);
-  font-size: 22px;
+  font-size: 16px;
   font-family: var(--font-serif);
   font-weight: 600;
 }
 .hero__presents-text {
   margin: 0;
-  font-size: 13px;
-  letter-spacing: .15em;
+  font-size: 12px;
+  letter-spacing: .12em;
   color: var(--text-sub);
 }
 @media (min-width: 768px) {
-  .hero__logo--heiwa { width: 90px; height: 90px; }
-  .hero__logo--miraigift { width: 120px; height: 90px; }
-  .hero__presents-text { font-size: 14px; }
+  .hero__logo--heiwa { width: 52px; height: 52px; }
+  .hero__logo--miraigift { width: 68px; height: 52px; }
+  .hero__presents-text { font-size: 13px; }
 }
 
 .hero__title {
