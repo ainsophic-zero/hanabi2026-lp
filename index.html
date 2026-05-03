@@ -31,7 +31,7 @@
         <a href="#essence">概要</a>
         <a href="#schedule">スケジュール</a>
         <a href="#fee">参加費</a>
-        <a href="#donation">寄付</a>
+        <a href="#apply">寄付・申込</a>
         <a href="#faq">FAQ</a>
       </nav>
       <a href="#apply" class="header__cta">参加申込み</a>
@@ -410,55 +410,6 @@
     </div>
   </section>
 
-  <!-- ============== DONATION ============== -->
-  <section id="donation" class="section donation">
-    <div class="container reveal">
-      <h2 class="section__title"><small>SUPPORT</small>寄付応援で参加する</h2>
-      <p class="section__lead">
-        現地参加は難しくても、想いだけは一緒に。<br />
-        お預かりした寄付は、村の子どもたちへの夕食支援、井戸掘り・学校補修などの活動に大切に使わせていただきます。
-      </p>
-
-      <div class="donation__cart">
-        <p class="donation__intro">金額を選ぶ／自由に入力する</p>
-
-        <div class="donation__presets" role="group" aria-label="寄付金額プリセット">
-          <button type="button" class="donation__preset" data-amount="3000">¥3,000</button>
-          <button type="button" class="donation__preset" data-amount="5000">¥5,000</button>
-          <button type="button" class="donation__preset" data-amount="10000">¥10,000</button>
-          <button type="button" class="donation__preset" data-amount="30000">¥30,000</button>
-          <button type="button" class="donation__preset" data-amount="50000">¥50,000</button>
-          <button type="button" class="donation__preset" data-amount="100000">¥100,000</button>
-        </div>
-
-        <div class="donation__custom">
-          <label for="donation-amount">金額（円）</label>
-          <div class="donation__input-wrap">
-            <input
-              type="number"
-              id="donation-amount"
-              class="donation__input"
-              min="100"
-              max="1000000"
-              step="100"
-              placeholder="0"
-              inputmode="numeric"
-              value="0"
-            />
-            <span class="donation__yen">円</span>
-          </div>
-          <p class="donation__note">100円〜1,000,000円の範囲でお選びいただけます。</p>
-        </div>
-
-        <button type="button" class="btn btn--primary donation__submit" id="donation-submit" disabled>
-          <span id="donation-submit-text">金額を選択してください</span>
-        </button>
-        <p class="donation__legal">クレジットカード決済（Square）の画面に進みます。寄付応援は税法上の寄付金控除の対象外です。</p>
-        <p class="donation__error" id="donation-error" hidden></p>
-      </div>
-    </div>
-  </section>
-
   <!-- ============== BANK TRANSFER ============== -->
   <section id="bank-transfer" class="section section--alt bank-transfer">
     <div class="container reveal">
@@ -540,6 +491,41 @@
               <div class="cart__info">
                 <div class="cart__name">2歳未満（食事・席なし）<span class="cart__badge">無料</span></div>
                 <div class="cart__price"><small>※同伴申告のみ。決済は不要です</small></div>
+              </div>
+            </div>
+
+            <!-- 寄付応援（参加コースとあわせて or 単独で） -->
+            <div class="cart__row cart__row--donation" data-course="donation">
+              <div class="cart__donation-head">
+                <div class="cart__info">
+                  <div class="cart__name">💝 寄付応援（任意金額）<span class="cart__badge cart__badge--pink">SUPPORT</span></div>
+                  <div class="cart__price">
+                    <small>現地参加が難しくても想いを一緒に。村の子どもたちへの夕食支援・井戸掘り・学校補修などに大切に活用します。</small>
+                  </div>
+                </div>
+                <div class="cart__donation-amount">
+                  <input
+                    type="number"
+                    id="cart-donation-input"
+                    class="cart__donation-input"
+                    min="0"
+                    max="1000000"
+                    step="100"
+                    placeholder="0"
+                    inputmode="numeric"
+                    value="0"
+                    aria-label="寄付金額"
+                  />
+                  <span class="cart__donation-yen">円</span>
+                </div>
+              </div>
+              <div class="cart__donation-presets" role="group" aria-label="寄付金額プリセット">
+                <button type="button" class="cart__donation-preset" data-amount="3000">¥3,000</button>
+                <button type="button" class="cart__donation-preset" data-amount="5000">¥5,000</button>
+                <button type="button" class="cart__donation-preset" data-amount="10000">¥10,000</button>
+                <button type="button" class="cart__donation-preset" data-amount="30000">¥30,000</button>
+                <button type="button" class="cart__donation-preset" data-amount="50000">¥50,000</button>
+                <button type="button" class="cart__donation-preset" data-amount="100000">¥100,000</button>
               </div>
             </div>
           </div>

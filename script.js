@@ -126,7 +126,7 @@
   // 日をまたいだ場合に備えて1時間ごとに再チェック
   setInterval(applyPricingMode, 3_600_000);
 
-  /* ----- 7. カート（複数アイテムまとめ決済）----- */
+  /* ----- 7. カート（参加コース＋寄付応援 まとめ決済）----- */
   function setupCart() {
     const cart = document.querySelector('.cart');
     if (!cart) return;
@@ -135,6 +135,12 @@
     const submitBtn = document.getElementById('cart-submit');
     const submitText = document.getElementById('cart-submit-text');
     const errorEl = document.getElementById('cart-error');
+
+    // 寄付関連
+    const donationInput = document.getElementById('cart-donation-input');
+    const donationPresets = cart.querySelectorAll('.cart__donation-preset');
+    const DONATION_MIN = 100;
+    const DONATION_MAX = 1000000;
 
     function isRegularPricing() {
       const nowJST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
@@ -159,27 +165,62 @@
       return useEl ? parseInt(useEl.textContent.replace(/[^\d]/g, ''), 10) || 0 : 0;
     }
 
+    function getDonationAmount() {
+      if (!donationInput) return 0;
+      const v = parseInt(donationInput.value, 10) || 0;
+      return v;
+    }
+
+    function isDonationValid() {
+      const v = getDonationAmount();
+      return v === 0 || (v >= DONATION_MIN && v <= DONATION_MAX);
+    }
+
     function recompute() {
-      let total = 0;
+      let participationTotal = 0;
       let totalQty = 0;
       cart.querySelectorAll('.cart__row').forEach(row => {
+        // 寄付行は別計算
+        if (row.classList.contains('cart__row--donation')) return;
         const qty = getQty(row);
         const price = getRowPrice(row);
-        total += qty * price;
+        participationTotal += qty * price;
         totalQty += qty;
       });
+
+      const donationAmt = getDonationAmount();
+      const total = participationTotal + (donationAmt >= DONATION_MIN ? donationAmt : 0);
+
       if (totalEl) totalEl.textContent = total.toLocaleString('ja-JP');
-      if (total > 0) {
+
+      // バリデーション：寄付額が範囲外なら無効
+      if (donationAmt > 0 && !isDonationValid()) {
+        submitBtn.disabled = true;
+        submitText.textContent = `寄付金額は${DONATION_MIN.toLocaleString('ja-JP')}〜${DONATION_MAX.toLocaleString('ja-JP')}円の範囲で`;
+        return;
+      }
+
+      const hasParticipation = totalQty > 0 && participationTotal > 0;
+      const hasDonation = donationAmt >= DONATION_MIN;
+
+      if (hasParticipation && hasDonation) {
+        submitBtn.disabled = false;
+        submitText.textContent = `${total.toLocaleString('ja-JP')}円を決済する（${totalQty}名分＋寄付応援）`;
+      } else if (hasParticipation) {
         submitBtn.disabled = false;
         submitText.textContent = `${total.toLocaleString('ja-JP')}円を決済する（${totalQty}名分）`;
+      } else if (hasDonation) {
+        submitBtn.disabled = false;
+        submitText.textContent = `${donationAmt.toLocaleString('ja-JP')}円を寄付して応援する`;
       } else {
         submitBtn.disabled = true;
-        submitText.textContent = '数量を選択してください';
+        submitText.textContent = '数量／寄付金額を選択してください';
       }
     }
 
-    // ＋／−ボタン & 直接入力
+    // ＋／−ボタン & 直接入力（参加コース行のみ）
     cart.querySelectorAll('.cart__row').forEach(row => {
+      if (row.classList.contains('cart__row--donation')) return;
       const minus = row.querySelector('[data-qty-minus]');
       const plus = row.querySelector('[data-qty-plus]');
       const input = row.querySelector('.cart__qty-input');
@@ -188,17 +229,47 @@
       if (input) input.addEventListener('input', () => { setQty(row, parseInt(input.value, 10) || 0); recompute(); });
     });
 
-    // 決済へ進む
+    // 寄付プリセット
+    function syncDonationPresetUI() {
+      const v = parseInt(donationInput?.value, 10) || 0;
+      donationPresets.forEach(b => {
+        if (parseInt(b.dataset.amount, 10) === v) b.classList.add('is-selected');
+        else b.classList.remove('is-selected');
+      });
+    }
+    donationPresets.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!donationInput) return;
+        donationInput.value = parseInt(btn.dataset.amount, 10);
+        syncDonationPresetUI();
+        recompute();
+      });
+    });
+    if (donationInput) {
+      donationInput.addEventListener('input', () => {
+        syncDonationPresetUI();
+        recompute();
+      });
+    }
+
+    // 決済へ進む（参加＋寄付 まとめ）
     submitBtn.addEventListener('click', async () => {
       const items = [];
       cart.querySelectorAll('.cart__row').forEach(row => {
+        if (row.classList.contains('cart__row--donation')) return;
         const qty = getQty(row);
         const courseId = row.dataset.course;
         if (qty > 0 && courseId && courseId !== 'kid-infant') {
           items.push({ courseId, qty });
         }
       });
-      if (items.length === 0) return;
+
+      const donationAmt = getDonationAmount();
+      const payload = {};
+      if (items.length > 0) payload.items = items;
+      if (donationAmt >= DONATION_MIN) payload.donation = { amount: donationAmt };
+
+      if (!payload.items && !payload.donation) return;
 
       submitBtn.disabled = true;
       submitText.textContent = '決済リンクを生成中…';
@@ -208,7 +279,7 @@
         const res = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items }),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (data.success && data.url) {
@@ -229,87 +300,5 @@
     recompute();
   }
   setupCart();
-
-  /* ----- 8. 寄付応援カート ----- */
-  function setupDonation() {
-    const input = document.getElementById('donation-amount');
-    const submit = document.getElementById('donation-submit');
-    const submitText = document.getElementById('donation-submit-text');
-    const error = document.getElementById('donation-error');
-    const presets = document.querySelectorAll('.donation__preset');
-    if (!input || !submit) return;
-
-    const MIN = 100;
-    const MAX = 1000000;
-
-    function clearPresetSelection() {
-      presets.forEach(b => b.classList.remove('is-selected'));
-    }
-
-    function recompute() {
-      const amt = parseInt(input.value, 10) || 0;
-      if (amt >= MIN && amt <= MAX) {
-        submit.disabled = false;
-        submitText.textContent = `${amt.toLocaleString('ja-JP')}円を寄付して応援する`;
-      } else {
-        submit.disabled = true;
-        submitText.textContent = '金額を選択してください';
-      }
-    }
-
-    presets.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const amt = parseInt(btn.dataset.amount, 10);
-        input.value = amt;
-        clearPresetSelection();
-        btn.classList.add('is-selected');
-        recompute();
-      });
-    });
-
-    input.addEventListener('input', () => {
-      // ユーザー直接入力ならプリセット選択を解除
-      clearPresetSelection();
-      // プリセット値と一致したら見た目選択状態に
-      const v = parseInt(input.value, 10);
-      presets.forEach(b => {
-        if (parseInt(b.dataset.amount, 10) === v) b.classList.add('is-selected');
-      });
-      recompute();
-    });
-
-    submit.addEventListener('click', async () => {
-      const amt = parseInt(input.value, 10) || 0;
-      if (amt < MIN) return;
-
-      submit.disabled = true;
-      submitText.textContent = '決済リンクを生成中…';
-      if (error) { error.hidden = true; error.textContent = ''; }
-
-      try {
-        const res = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ donation: { amount: amt } }),
-        });
-        const data = await res.json();
-        if (data.success && data.url) {
-          window.location.href = data.url;
-        } else {
-          throw new Error(data.error || '決済リンクの生成に失敗しました');
-        }
-      } catch (err) {
-        if (error) {
-          error.hidden = false;
-          error.textContent = `エラー: ${err.message}。お時間をおいて再度お試しください。`;
-        }
-        submit.disabled = false;
-        recompute();
-      }
-    });
-
-    recompute();
-  }
-  setupDonation();
 
 })();
