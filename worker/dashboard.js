@@ -26,6 +26,11 @@ const COURSE_CATALOG = {
   'kid-infant':  { label: 'カンボジア花火2026｜2歳未満（食事・席なし）',           early: 0,      regular: 0      },
 };
 
+// 寄付応援：任意金額 (100〜1,000,000円)
+const DONATION_LABEL = 'カンボジア花火2026｜寄付応援';
+const DONATION_MIN = 100;
+const DONATION_MAX = 1000000;
+
 function isRegularPricing() {
   // JST で 2026-08-01 00:00 以降は通常料金
   const cutoff = Date.UTC(2026, 7, 1) - 9 * 60 * 60 * 1000; // JST=UTC+9
@@ -40,6 +45,7 @@ const COURSE_MAP = {
   '井戸掘り・村宿泊コース通常': { label: '井戸掘り｜通常',   badge: '🌊 WELL',       color: '#C9CFE2' },
   '小中学生':   { label: '小中学生',       badge: '👦 小中学生',   color: '#86efac' },
   '未就学児':   { label: '未就学児',       badge: '👶 未就学児',   color: '#86efac' },
+  '寄付応援':   { label: '寄付応援',       badge: '💝 寄付応援',   color: '#FF8FB1', isDonation: true },
 };
 function parseCourse(name) {
   const clean = name.replace(/^カンボジア花火2026[｜|]/, '').trim();
@@ -148,10 +154,24 @@ function renderHTML({ squareRows, manualRows, updatedAt }) {
   ].reduce((s, n) => s + n, 0);
   // 取引件数
   const totalCount = completed.length + manualRows.length;
-  // 合計人数（複数申込にも対応）
+  // 合計人数（複数申込にも対応／寄付はカウントしない）
   const totalPeople =
-    completed.reduce((s, r) => s + (r.totalQty || 1), 0) +
-    manualRows.reduce((s, r) => s + (parseInt(r.qty, 10) || 1), 0);
+    completed.reduce((s, r) => s + (r.totalQty || (r.isDonationOnly ? 0 : 1)), 0) +
+    manualRows.reduce((s, r) => {
+      const isDonation = (r.course || '').includes('寄付');
+      if (isDonation) return s;
+      return s + (parseInt(r.qty, 10) || 1);
+    }, 0);
+  // 寄付応援額の集計
+  const donationAmt =
+    completed.reduce((s, r) => s + (r.donationAmt || 0), 0) +
+    manualRows.reduce((s, r) => {
+      const isDonation = (r.course || '').includes('寄付');
+      return isDonation ? s + (r.amt || 0) : s;
+    }, 0);
+  const donationCount =
+    completed.filter(r => (r.donationAmt || 0) > 0).length +
+    manualRows.filter(r => (r.course || '').includes('寄付')).length;
 
   const courseOptions = [
     '基本コース｜早期（150,000円）',
@@ -161,6 +181,7 @@ function renderHTML({ squareRows, manualRows, updatedAt }) {
     '小中学生（110,000円）',
     '未就学児（55,000円）',
     '2歳未満（0円）',
+    '寄付応援（任意金額）',
     'その他',
   ].map(c => `<option value="${c}">${c}</option>`).join('');
 
@@ -172,9 +193,14 @@ function renderHTML({ squareRows, manualRows, updatedAt }) {
           `<span class="badge" style="color:${it.color||'#C9CFE2'};margin-right:4px;display:inline-block">${it.label}${it.qty > 1 ? `<strong style="color:var(--gold);margin-left:4px">×${it.qty}</strong>` : ''}</span>`
         ).join('')
       : `<span class="badge" style="color:${r.color||'#C9CFE2'}">${r.course || '-'}</span>`;
-    const peopleCell = (r.totalQty && r.totalQty > 1)
-      ? `<strong style="color:var(--gold)">${r.totalQty}名</strong>`
-      : (isManual ? `${parseInt(r.qty, 10) || 1}名` : '1名');
+    const isDonationRow = isManual
+      ? (r.course || '').includes('寄付')
+      : !!r.isDonationOnly;
+    const peopleCell = isDonationRow
+      ? '<span style="color:#FF8FB1">寄付</span>'
+      : (r.totalQty && r.totalQty > 1)
+        ? `<strong style="color:var(--gold)">${r.totalQty}名</strong>`
+        : (isManual ? `${parseInt(r.qty, 10) || 1}名` : '1名');
     const delBtn = isManual
       ? `<form method="POST" action="/dashboard/delete" style="display:inline">
            <input type="hidden" name="id" value="${r.id}" />
@@ -220,6 +246,7 @@ ${css()}
   <div class="stat"><div class="stat__num">${totalCount}</div><div class="stat__label">申込件数</div></div>
   <div class="stat"><div class="stat__num">${totalPeople}<small style="font-size:.5em;color:var(--text-sub);margin-left:6px">名</small></div><div class="stat__label">合計人数</div></div>
   <div class="stat"><div class="stat__num">¥${totalAmt.toLocaleString()}</div><div class="stat__label">累計受入額</div></div>
+  <div class="stat" style="border-color:rgba(255,143,177,.4)"><div class="stat__num" style="color:#FF8FB1">¥${donationAmt.toLocaleString()}</div><div class="stat__label">うち寄付応援（${donationCount}件）</div></div>
   <div class="stat"><div class="stat__num">${Math.max(0, 50 - totalPeople)}</div><div class="stat__label">残席（定員50名）</div></div>
 </div>
 
@@ -307,7 +334,8 @@ async function handleCheckout(request, env) {
   }
 
   const items = Array.isArray(body?.items) ? body.items : [];
-  if (items.length === 0) {
+  const donation = body?.donation || null;
+  if (items.length === 0 && !donation) {
     return jsonResponse({ success: false, error: 'カートが空です' }, 400);
   }
 
@@ -330,6 +358,22 @@ async function handleCheckout(request, env) {
     });
   }
 
+  // 寄付応援（任意金額）
+  if (donation && donation.amount != null) {
+    const amt = parseInt(donation.amount, 10);
+    if (!Number.isFinite(amt) || amt < DONATION_MIN || amt > DONATION_MAX) {
+      return jsonResponse({
+        success: false,
+        error: `寄付金額は${DONATION_MIN.toLocaleString('ja-JP')}円〜${DONATION_MAX.toLocaleString('ja-JP')}円の範囲でご指定ください`,
+      }, 400);
+    }
+    lineItems.push({
+      name: DONATION_LABEL,
+      quantity: '1',
+      base_price_money: { amount: amt, currency: 'JPY' },
+    });
+  }
+
   if (lineItems.length === 0) {
     return jsonResponse({ success: false, error: '有効な商品がありません' }, 400);
   }
@@ -341,7 +385,10 @@ async function handleCheckout(request, env) {
   }
 
   // Square 決済リンク作成
-  const description = `カンボジア花火2026 お申込み。決済完了後、参加者専用LINEグループにご参加ください。${LINE_URL}`;
+  const isDonationOnly = items.length === 0 && donation;
+  const description = isDonationOnly
+    ? `カンボジア花火2026 寄付応援。心からの応援をありがとうございます。よろしければ参加者専用LINEグループでも近況をお届けします。${LINE_URL}`
+    : `カンボジア花火2026 お申込み。決済完了後、参加者専用LINEグループにご参加ください。${LINE_URL}`;
   const payload = {
     idempotency_key: crypto.randomUUID(),
     order: {
@@ -483,13 +530,19 @@ export default {
         .map(p => {
           const order    = ordersMap[p.order_id] || {};
           const lineItems = (order.line_items || []).filter(li => li.name?.includes(HANABI_TAG));
-          // 全アイテムを {label, qty, color, badge} に展開
+          // 全アイテムを {label, qty, color, badge, isDonation, amt} に展開
           const items = lineItems.map(li => {
             const c = parseCourse(li.name || '');
             const qty = parseInt(li.quantity || '1', 10) || 1;
-            return { label: c.label, badge: c.badge, color: c.color, qty };
+            const unitAmt = li.base_price_money?.amount || 0;
+            return { label: c.label, badge: c.badge, color: c.color, qty, isDonation: !!c.isDonation, amt: unitAmt * qty };
           });
-          const totalQty = items.reduce((s, it) => s + it.qty, 0);
+          // 寄付は人数カウントから除外
+          const totalQty = items.reduce((s, it) => s + (it.isDonation ? 0 : it.qty), 0);
+          // 寄付応援の合計金額
+          const donationAmt = items.reduce((s, it) => s + (it.isDonation ? it.amt : 0), 0);
+          // 寄付のみの申込か（参加者0名）
+          const isDonationOnly = items.length > 0 && items.every(it => it.isDonation);
           // 表示用：1件なら「コース名」、複数なら「コース×2 / コース×1」形式
           const courseDisplay = items.length === 1 && items[0].qty === 1
             ? items[0].label
@@ -505,6 +558,8 @@ export default {
             course:     courseDisplay,
             items,            // ← 詳細用
             totalQty,         // ← 合計人数
+            donationAmt,      // ← 寄付応援額
+            isDonationOnly,   // ← 寄付のみフラグ
             color:      primaryColor,
             amt:        p.amount_money?.amount || 0,
             status:     p.status,

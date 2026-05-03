@@ -230,4 +230,86 @@
   }
   setupCart();
 
+  /* ----- 8. 寄付応援カート ----- */
+  function setupDonation() {
+    const input = document.getElementById('donation-amount');
+    const submit = document.getElementById('donation-submit');
+    const submitText = document.getElementById('donation-submit-text');
+    const error = document.getElementById('donation-error');
+    const presets = document.querySelectorAll('.donation__preset');
+    if (!input || !submit) return;
+
+    const MIN = 100;
+    const MAX = 1000000;
+
+    function clearPresetSelection() {
+      presets.forEach(b => b.classList.remove('is-selected'));
+    }
+
+    function recompute() {
+      const amt = parseInt(input.value, 10) || 0;
+      if (amt >= MIN && amt <= MAX) {
+        submit.disabled = false;
+        submitText.textContent = `${amt.toLocaleString('ja-JP')}円を寄付して応援する`;
+      } else {
+        submit.disabled = true;
+        submitText.textContent = '金額を選択してください';
+      }
+    }
+
+    presets.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amt = parseInt(btn.dataset.amount, 10);
+        input.value = amt;
+        clearPresetSelection();
+        btn.classList.add('is-selected');
+        recompute();
+      });
+    });
+
+    input.addEventListener('input', () => {
+      // ユーザー直接入力ならプリセット選択を解除
+      clearPresetSelection();
+      // プリセット値と一致したら見た目選択状態に
+      const v = parseInt(input.value, 10);
+      presets.forEach(b => {
+        if (parseInt(b.dataset.amount, 10) === v) b.classList.add('is-selected');
+      });
+      recompute();
+    });
+
+    submit.addEventListener('click', async () => {
+      const amt = parseInt(input.value, 10) || 0;
+      if (amt < MIN) return;
+
+      submit.disabled = true;
+      submitText.textContent = '決済リンクを生成中…';
+      if (error) { error.hidden = true; error.textContent = ''; }
+
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ donation: { amount: amt } }),
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || '決済リンクの生成に失敗しました');
+        }
+      } catch (err) {
+        if (error) {
+          error.hidden = false;
+          error.textContent = `エラー: ${err.message}。お時間をおいて再度お試しください。`;
+        }
+        submit.disabled = false;
+        recompute();
+      }
+    });
+
+    recompute();
+  }
+  setupDonation();
+
 })();
