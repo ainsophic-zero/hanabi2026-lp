@@ -7,6 +7,22 @@
  * - カート：枚数 +/- / 合計更新 / Square チェックアウト POST
  */
 
+// ── 日程の自動非表示（JST基準）────────────────────────────────
+(function hideExpiredDates() {
+  // JST 現在時刻
+  const nowJST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+
+  // 6/29 00:00 JST 以降: 6/28 関連を非表示
+  const cutoff0628 = new Date('2026-06-29T00:00:00+09:00');
+  if (nowJST >= cutoff0628) {
+    // ヒーローの日付バッジ
+    document.querySelector('.hero__date--0628')?.remove();
+    document.querySelector('.hero__date-sep')?.remove();
+    // カートの 6/28 行
+    document.querySelector('.cart__row[data-ticket="0628"]')?.remove();
+  }
+})();
+
 // ── ヘッダー スクロール ────────────────────────────────────────
 const header = document.getElementById('header');
 if (header) {
