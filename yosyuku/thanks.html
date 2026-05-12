@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>お申込み完了 — 弥栄予祝会 in 銀座FEEEP</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* thanks.html 専用オーバーライド */
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .thanks-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px 80px;
+    text-align: center;
+  }
+
+  .thanks-icon {
+    font-size: 64px;
+    margin-bottom: 24px;
+    animation: pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+
+  @keyframes pop {
+    from { transform: scale(0.4); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .thanks-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(24px, 5vw, 40px);
+    font-weight: 800;
+    color: var(--gold-l);
+    margin: 0 0 12px;
+  }
+
+  .thanks-sub {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.8;
+    margin: 0 0 40px;
+    max-width: 480px;
+  }
+
+  .thanks-steps {
+    background: rgba(125,194,75,.08);
+    border: 1px solid rgba(125,194,75,.2);
+    border-radius: 16px;
+    padding: 28px 32px;
+    max-width: 480px;
+    width: 100%;
+    margin-bottom: 40px;
+    text-align: left;
+  }
+
+  .thanks-steps h2 {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 16px;
+    color: var(--green);
+    margin: 0 0 16px;
+  }
+
+  .step-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .step-list li {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .line-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #06C755;
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 20px rgba(6,199,85,.35);
+    margin-bottom: 24px;
+  }
+
+  .line-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(6,199,85,.5);
+  }
+
+  .line-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: #fff;
+  }
+
+  .back-link {
+    color: var(--text-muted);
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .back-link:hover { color: var(--gold-l); }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー（最小限） -->
+<header class="header scrolled" id="header">
+  <div class="header__inner">
+    <a href="/yosyuku/" class="header__logo">🌏 Peace Fireworks 2026</a>
+  </div>
+</header>
+
+<!-- 完了メッセージ -->
+<main class="thanks-wrap">
+  <div class="thanks-icon">🎉</div>
+  <h1 class="thanks-title">お申込みありがとうございます！</h1>
+  <p class="thanks-sub">
+    決済が完了しました。<br>
+    参加者専用LINEグループへご参加ください。<br>
+    当日の詳細・持ち物などはLINEでご案内します。
+  </p>
+
+  <!-- 次のステップ -->
+  <div class="thanks-steps">
+    <h2>📋 お申込み後の流れ</h2>
+    <ol class="step-list">
+      <li>
+        <span class="step-num">1</span>
+        <span>下のボタンから参加者専用LINEグループに参加してください。</span>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <span>イベント詳細・当日の開始時間・持ち物などをLINEでお伝えします。</span>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <span>当日は銀座FEEEPへ直接お越しください（住所はLINEにてご案内）。</span>
+      </li>
+    </ol>
+  </div>
+
+  <!-- LINE 参加ボタン -->
+  <a href="https://line.me/ti/g/ea9AdppvxE" target="_blank" rel="noopener" class="line-btn">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 4C12.954 4 4 12.059 4 22c0 6.347 3.531 11.926 8.896 15.29-.39 1.452-1.414 5.278-1.617 6.07-.254.985.37 1.64 1.23 1.063.672-.443 8.723-5.86 11.97-8.003.488.034.98.08 1.521.08C35.046 36.5 44 28.441 44 22 44 12.059 35.046 4 24 4z"/>
+    </svg>
+    LINE グループに参加する
+  </a>
+
+  <a href="/yosyuku/" class="back-link">← 予祝会トップに戻る</a>
+</main>
+
+<!-- フッター（最小限） -->
+<footer style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px;border-top:1px solid rgba(255,255,255,.06);">
+  © 2026 国際事業家協会 / The Peace Fireworks 2026 実行委員会
+</footer>
+
+</body>
+</html>

@@ -31,20 +31,25 @@ with open('$TOKEN_FILE', 'w') as f:
     json.dump(json.loads(r"""$RESPONSE"""), f, indent=2)
 PYEOF
 
-# Update Cloudflare Worker secret
-curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/hanabi2026-dashboard/secrets" \
-  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"SQUARE_ACCESS_TOKEN\",\"text\":\"${ACCESS_TOKEN}\",\"type\":\"secret_text\"}" \
-  > /dev/null
+# Update Cloudflare Worker secrets (全Workerに適用)
+for WORKER in hanabi2026-dashboard square-admin-dashboard yosyuku-dashboard; do
+  curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$WORKER/secrets" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"name\":\"SQUARE_ACCESS_TOKEN\",\"text\":\"${ACCESS_TOKEN}\",\"type\":\"secret_text\"}" \
+    > /dev/null
+  echo "[OK] Updated SQUARE_ACCESS_TOKEN for $WORKER"
+done
 
 NEW_REFRESH=$(python3 -c "import json; print(json.loads(r'$RESPONSE').get('refresh_token',''))" 2>/dev/null || echo "")
 if [ -n "$NEW_REFRESH" ]; then
-  curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/hanabi2026-dashboard/secrets" \
-    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d "{\"name\":\"SQUARE_REFRESH_TOKEN\",\"text\":\"${NEW_REFRESH}\",\"type\":\"secret_text\"}" \
-    > /dev/null
+  for WORKER in hanabi2026-dashboard square-admin-dashboard yosyuku-dashboard; do
+    curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$WORKER/secrets" \
+      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"name\":\"SQUARE_REFRESH_TOKEN\",\"text\":\"${NEW_REFRESH}\",\"type\":\"secret_text\"}" \
+      > /dev/null
+  done
 fi
 
 echo "[OK] Token refreshed: ${ACCESS_TOKEN:0:30}..."

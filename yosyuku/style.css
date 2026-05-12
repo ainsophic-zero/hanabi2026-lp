@@ -1,0 +1,415 @@
+/* =========================================================
+   弥栄予祝会 LP — style.css
+   カラー: 深森の夜 × エジソン電球アンバー × FEEEPグリーン
+   ========================================================= */
+
+/* ── ベース変数 ─────────────────────────────── */
+:root {
+  --bg:        #060C06;
+  --bg2:       #0A140A;
+  --green:     #7DC24B;
+  --green-d:   #5A9935;
+  --green-l:   #A8D870;
+  --gold:      #D4A03A;
+  --gold-l:    #F0C860;
+  --amber:     #C88020;
+  --text:      #F0EDE6;
+  --sub:       #B8C8A8;
+  --mute:      #6A7A5A;
+  --card:      #0E180E;
+  --card2:     #131F10;
+  --border:    rgba(125,194,75,.2);
+  --border2:   rgba(212,160,58,.25);
+  --c0628:     #60a5fa;
+  --c0725:     #a78bfa;
+  --radius:    14px;
+  --transition: .3s ease;
+}
+
+/* ── リセット・ベース ────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:16px;
+  line-height:1.8;
+  overflow-x:hidden;
+}
+img{max-width:100%;height:auto}
+a{color:var(--green);text-decoration:none}
+a:hover{opacity:.85}
+
+/* ── タイポグラフィ ───────────────────────────── */
+h1,h2,h3{font-family:'Shippori Mincho',serif;line-height:1.3}
+h2{font-size:clamp(24px,4vw,36px);color:var(--text)}
+h3{font-size:20px;color:var(--gold)}
+strong{color:var(--text)}
+em{font-style:normal;color:var(--green-l)}
+
+/* ── ユーティリティ ──────────────────────────── */
+.container{max-width:860px;margin:0 auto;padding:0 20px}
+.section{padding:80px 0}
+.section--alt{background:var(--bg2)}
+.section-tag{
+  display:inline-block;font-size:11px;letter-spacing:.15em;font-weight:700;
+  color:var(--green);border:1px solid var(--border);border-radius:999px;
+  padding:4px 14px;margin-bottom:12px
+}
+.section-head{text-align:center;margin-bottom:48px}
+.section-head h2{margin-top:8px}
+
+/* ── フェードイン ────────────────────────────── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.is-visible{opacity:1;transform:none}
+
+/* ── ヘッダー ─────────────────────────────────── */
+.header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 24px;
+  transition:background var(--transition),backdrop-filter var(--transition);
+}
+.header.is-scrolled{
+  background:rgba(6,12,6,.88);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.header__inner{display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto}
+.header__logo{font-family:'Shippori Mincho',serif;font-size:15px;color:var(--text);font-weight:700}
+.header__nav{display:flex;align-items:center;gap:24px}
+.header__nav a{font-size:13px;color:var(--sub)}
+.header__nav a:hover{color:var(--text)}
+.header__cta{
+  background:var(--green);color:#060C06!important;font-weight:700;
+  padding:8px 18px;border-radius:8px;font-size:13px!important;
+}
+.header__cta:hover{background:var(--green-l);opacity:1!important}
+@media(max-width:640px){
+  .header__nav a:not(.header__cta){display:none}
+}
+
+/* ── ヒーロー ─────────────────────────────────── */
+.hero{
+  position:relative;min-height:100svh;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.hero__bg{position:absolute;inset:0;z-index:0}
+.hero__img{width:100%;height:100%;object-fit:cover;opacity:.45}
+.hero__overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(6,12,6,.3) 0%,rgba(6,12,6,.6) 50%,rgba(6,12,6,.95) 100%);
+}
+
+/* 電球パーティクル */
+.lights{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.light{
+  position:absolute;
+  width:4px;height:4px;border-radius:50%;
+  background:var(--gold-l);
+  box-shadow:0 0 8px 4px rgba(240,200,96,.5);
+  animation:float-light 6s infinite ease-in-out;
+  opacity:0;
+}
+.light:nth-child(1){top:10%;left:15%;animation-delay:0s;animation-duration:7s}
+.light:nth-child(2){top:20%;left:60%;animation-delay:.8s;animation-duration:8s}
+.light:nth-child(3){top:35%;left:80%;animation-delay:1.5s;animation-duration:6.5s}
+.light:nth-child(4){top:15%;left:35%;animation-delay:2s;animation-duration:9s}
+.light:nth-child(5){top:45%;left:20%;animation-delay:1s;animation-duration:7.5s}
+.light:nth-child(6){top:60%;left:70%;animation-delay:2.5s;animation-duration:6s}
+.light:nth-child(7){top:25%;left:50%;animation-delay:.3s;animation-duration:8.5s}
+.light:nth-child(8){top:70%;left:40%;animation-delay:1.8s;animation-duration:7s}
+.light:nth-child(9){top:55%;left:85%;animation-delay:.6s;animation-duration:9s}
+.light:nth-child(10){top:80%;left:10%;animation-delay:2.2s;animation-duration:6s}
+.light:nth-child(11){top:5%;left:90%;animation-delay:1.2s;animation-duration:8s}
+.light:nth-child(12){top:40%;left:5%;animation-delay:3s;animation-duration:7s}
+@keyframes float-light{
+  0%,100%{opacity:0;transform:translateY(0) scale(1)}
+  30%,70%{opacity:.7}
+  50%{opacity:1;transform:translateY(-20px) scale(1.2)}
+}
+
+.hero__content{
+  position:relative;z-index:1;
+  text-align:center;padding:120px 20px 60px;
+  max-width:720px;
+}
+.hero__eyebrow{
+  font-size:13px;letter-spacing:.2em;color:var(--green);
+  font-weight:700;margin-bottom:16px;display:block;
+}
+.hero__title{
+  font-size:clamp(52px,12vw,96px);font-weight:800;
+  color:var(--text);line-height:1.05;
+  margin-bottom:12px;
+}
+.hero__title span{display:block}
+.hero__title-jp{
+  font-size:clamp(64px,14vw,112px);
+  background:linear-gradient(135deg,var(--gold),var(--green-l));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero__venue{
+  font-size:18px;color:var(--sub);margin-bottom:20px;letter-spacing:.08em;
+}
+.hero__venue strong{color:var(--green);font-size:22px}
+.hero__dates{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.hero__date{
+  display:inline-block;padding:8px 20px;border-radius:999px;
+  font-weight:700;font-size:16px;letter-spacing:.05em;
+}
+.hero__date--0628{background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.4);color:#93c5fd}
+.hero__date--0725{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.4);color:#c4b5fd}
+.hero__date-sep{color:var(--mute)}
+.hero__time{font-size:12px;color:var(--mute);margin-bottom:20px}
+.hero__tagline{
+  font-family:'Shippori Mincho',serif;
+  font-size:clamp(20px,4vw,30px);font-weight:600;
+  color:var(--gold-l);margin:20px 0 32px;letter-spacing:.1em;
+}
+.hero__actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+/* ── ボタン ───────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border-radius:10px;font-weight:700;cursor:pointer;
+  transition:all var(--transition);border:none;text-decoration:none;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.btn--primary{
+  background:linear-gradient(135deg,var(--green),var(--green-d));
+  color:#060C06;
+}
+.btn--primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(125,194,75,.35);opacity:1;color:#060C06}
+.btn--ghost{
+  background:rgba(255,255,255,.06);color:var(--sub);
+  border:1px solid rgba(255,255,255,.2);
+}
+.btn--ghost:hover{background:rgba(255,255,255,.12);color:var(--text);opacity:1}
+.btn--lg{padding:14px 32px;font-size:16px}
+.btn--full{width:100%;padding:16px;font-size:16px}
+.btn--date{margin-top:20px;width:100%;padding:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* ── リードセクション ─────────────────────────── */
+.lead__body{
+  font-family:'Shippori Mincho',serif;
+  font-size:clamp(18px,3vw,24px);
+  text-align:center;line-height:2;
+}
+.lead__body p{margin-bottom:1.5em}
+.lead__big{font-size:clamp(22px,4vw,30px);color:var(--sub)}
+.lead__accent{
+  font-size:clamp(24px,5vw,36px);font-weight:700;
+  color:var(--gold-l);
+}
+.lead__sub{color:var(--sub);font-size:18px}
+
+/* ── 予祝とはカード ──────────────────────────── */
+.about__card{
+  background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:40px;max-width:640px;margin:0 auto;text-align:center;
+}
+.about__def{
+  font-family:'Shippori Mincho',serif;
+  font-size:clamp(20px,4vw,28px);
+  line-height:1.8;margin-bottom:24px;
+  color:var(--text);
+}
+.about__card p{margin-bottom:1em;color:var(--sub)}
+.about__card p:last-child{margin:0}
+
+/* ── チェックリスト ──────────────────────────── */
+.earth__body{max-width:640px;margin:0 auto 32px;text-align:center}
+.earth__body p{color:var(--sub);margin-bottom:1em}
+.checklist{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px;margin:0 auto 32px;
+}
+.checklist__item{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:14px 18px;font-size:14px;color:var(--sub);
+}
+.earth__close{text-align:center;color:var(--sub)}
+.earth__close strong{color:var(--green-l)}
+@media(max-width:480px){.checklist{grid-template-columns:1fr}}
+
+/* ── 現地ツアー ──────────────────────────────── */
+.remote__checks{color:var(--mute);margin-bottom:24px;text-align:center}
+.remote__checks p{margin-bottom:4px}
+.remote__body{text-align:center}
+.remote__body p{color:var(--sub);margin-bottom:1em}
+.remote__ok{font-size:clamp(20px,4vw,28px);color:var(--text)!important;font-family:'Shippori Mincho',serif;margin-bottom:16px!important}
+.roles{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+  margin:24px 0;
+}
+.roles span{
+  background:var(--card);border:1px solid var(--border);border-radius:999px;
+  padding:8px 18px;font-size:14px;color:var(--green-l);
+}
+.remote__all{font-size:clamp(18px,3vw,22px);color:var(--text)!important;font-weight:700;font-family:'Shippori Mincho',serif;margin-bottom:16px!important}
+
+/* ── プログラム ──────────────────────────────── */
+.program__grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;
+}
+.program__item{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:16px;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--sub);
+}
+.program__icon{font-size:20px;flex-shrink:0}
+.program__item--last{
+  border-color:var(--border2);
+  background:var(--card2);
+  color:var(--gold-l);
+  grid-column:1/-1;
+}
+
+/* ── 対象者 ───────────────────────────────────── */
+.audience__list{display:flex;flex-direction:column;gap:10px;max-width:480px;margin:0 auto}
+.audience__item{
+  padding:14px 20px;background:var(--card);border-left:3px solid var(--green);
+  border-radius:0 10px 10px 0;color:var(--sub);font-size:15px;
+}
+
+/* ── 開催概要 ─────────────────────────────────── */
+.overview__grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:40px;
+}
+.overview__card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;
+}
+.overview__card--0628{border-color:rgba(96,165,250,.3)}
+.overview__card--0725{border-color:rgba(167,139,250,.3)}
+.overview__date-badge{
+  display:inline-block;padding:6px 16px;border-radius:999px;
+  font-weight:700;font-size:14px;margin-bottom:20px;
+}
+.overview__card--0628 .overview__date-badge{
+  background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.4);color:#93c5fd;
+}
+.overview__card--0725 .overview__date-badge{
+  background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.4);color:#c4b5fd;
+}
+.overview__card dl{display:flex;flex-direction:column;gap:12px}
+.overview__card dt{font-size:12px;color:var(--mute);font-weight:700;margin-bottom:0}
+.overview__card dd{font-size:15px;color:var(--sub);margin-left:0}
+.overview__card dd strong.price{
+  font-size:24px;color:var(--gold-l);font-family:'Shippori Mincho',serif;
+}
+@media(max-width:600px){.overview__grid{grid-template-columns:1fr}}
+
+/* 銀行振込 */
+.bank-transfer{
+  background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:28px;max-width:560px;margin:0 auto;
+}
+.bank-transfer h3{margin-bottom:12px;font-size:18px}
+.bank-transfer>p{color:var(--sub);font-size:14px;margin-bottom:16px}
+.bank-transfer__box{background:rgba(0,0,0,.3);border-radius:8px;padding:16px}
+.bank-transfer__label{font-weight:700;color:var(--gold);margin-bottom:10px;display:block}
+.bank-transfer__table{width:100%;border-collapse:collapse}
+.bank-transfer__table td{padding:6px 10px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05)}
+.bank-transfer__table td:first-child{color:var(--mute);width:90px}
+.bank-transfer__table td:last-child{color:var(--text)}
+.bank-transfer__note{font-size:12px;color:var(--mute);margin-top:12px}
+
+/* ── ビジョンセクション ──────────────────────── */
+.vision__body{text-align:center;font-family:'Shippori Mincho',serif}
+.vision__body p{color:var(--sub);margin-bottom:1em;font-size:18px}
+.vision__year{font-size:13px!important;letter-spacing:.15em;color:var(--mute)!important;font-family:'Noto Sans JP',sans-serif!important;margin-bottom:8px!important}
+.vision__nums{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin:24px 0}
+.vision__nums span{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:12px 20px;font-size:16px;color:var(--green-l);
+}
+.vision__accent{font-size:clamp(22px,5vw,36px);font-weight:700;color:var(--text)!important;margin-top:16px!important}
+.vision__accent strong{color:var(--gold-l)}
+
+/* ── 関わり方 ─────────────────────────────────── */
+.involve__list{
+  display:flex;flex-direction:column;gap:10px;max-width:480px;
+  margin:0 auto 32px;
+}
+.involve__item{
+  padding:14px 20px;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;color:var(--sub);font-size:15px;
+  cursor:default;transition:border-color var(--transition);
+}
+.involve__item:hover{border-color:var(--green)}
+.involve__close{text-align:center;color:var(--sub);margin-bottom:16px}
+.involve__final{text-align:center;font-family:'Shippori Mincho',serif;font-size:clamp(20px,4vw,28px)}
+
+/* ── 申込カート ──────────────────────────────── */
+.apply__sub{color:var(--sub);font-size:14px;margin-top:8px}
+.cart{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;max-width:600px;margin:0 auto 24px;
+}
+.cart__tickets{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.cart__row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;padding:16px;flex-wrap:wrap;
+}
+.cart__info{flex:1;min-width:160px}
+.cart__name{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.cart__badge{
+  display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;
+}
+.cart__badge--0628{background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.35);color:#93c5fd}
+.cart__badge--0725{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.35);color:#c4b5fd}
+.cart__price{font-size:20px;font-weight:700;color:var(--gold-l)}
+.cart__price small{font-size:12px;color:var(--mute);font-weight:400}
+.cart__qty{display:flex;align-items:center;gap:8px}
+.cart__qty-btn{
+  width:36px;height:36px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
+  background:transparent;color:var(--text);font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--transition);
+}
+.cart__qty-btn:hover{background:rgba(125,194,75,.2);border-color:var(--green)}
+.cart__qty-input{
+  width:48px;text-align:center;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);border-radius:8px;
+  color:var(--text);font-size:16px;font-weight:700;padding:6px;
+}
+.cart__summary{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 0;border-top:1px solid rgba(255,255,255,.08);
+  margin-bottom:16px;
+}
+.cart__total-label{color:var(--sub);font-size:14px}
+.cart__total{font-size:28px;font-weight:700;color:var(--gold-l)}
+.cart__error{background:rgba(248,113,113,.1);border:1px solid #f87171;border-radius:8px;padding:10px 14px;color:#f87171;font-size:13px;margin-bottom:12px}
+.cart__note{font-size:12px;color:var(--mute);text-align:center;margin-top:14px;line-height:1.7}
+.cart__note a{color:var(--green)}
+
+.bank-reminder{
+  text-align:center;font-size:13px;color:var(--mute);
+  padding:16px;border:1px dashed rgba(212,160,58,.25);border-radius:10px;
+  max-width:560px;margin:0 auto;
+}
+
+/* ── フッター ─────────────────────────────────── */
+.footer{
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:40px 0;text-align:center;
+}
+.footer__title{font-family:'Shippori Mincho',serif;color:var(--green-l);font-size:16px;margin-bottom:16px}
+.footer__links{display:flex;flex-wrap:wrap;justify-content:center;gap:16px 24px;margin-bottom:20px}
+.footer__links a{font-size:13px;color:var(--mute)}
+.footer__links a:hover{color:var(--sub)}
+.footer__copy{font-size:12px;color:var(--mute)}
+
+/* ── レスポンシブ ────────────────────────────── */
+@media(max-width:640px){
+  .section{padding:56px 0}
+  .hero__content{padding:100px 16px 48px}
+  .program__grid{grid-template-columns:1fr}
+  .cart{padding:20px 16px}
+  .cart__row{flex-direction:column;align-items:flex-start}
+  .cart__qty{align-self:flex-end}
+  .bank-transfer{padding:20px 16px}
+}
