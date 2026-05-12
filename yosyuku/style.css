@@ -87,10 +87,10 @@ em{font-style:normal;color:var(--green-l)}
 .header.is-scrolled .header__nav a{color:var(--sub)}
 .header.is-scrolled .header__nav a:hover{color:var(--text)}
 .header__cta{
-  background:var(--green);color:#060C06!important;font-weight:700;
+  background:linear-gradient(135deg,#D48A18,#C07010);color:#FFFFFF!important;font-weight:700;
   padding:8px 18px;border-radius:8px;font-size:13px!important;
 }
-.header__cta:hover{background:var(--green-l);opacity:1!important}
+.header__cta:hover{background:linear-gradient(135deg,#E09A28,#D08020);opacity:1!important}
 @media(max-width:640px){
   .header__nav a:not(.header__cta){display:none}
 }
