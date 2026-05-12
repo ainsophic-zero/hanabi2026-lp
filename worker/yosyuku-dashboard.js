@@ -172,18 +172,45 @@ function css() {
   .badge-0725{background:rgba(167,139,250,.15);color:var(--accent-0725)}
   .badge-completed{background:rgba(74,222,128,.12);color:var(--green)}
   .badge-pending{background:rgba(250,204,21,.12);color:#facc15}
+  .badge-manual{background:rgba(251,146,60,.15);color:#fb923c}
   .badge-other{background:rgba(255,255,255,.08);color:var(--mute)}
   .empty{text-align:center;padding:48px;color:var(--mute)}
-  @media(max-width:680px){body{padding:12px}th.hide-sp,td.hide-sp{display:none}}
+  .del-btn{background:none;border:none;cursor:pointer;color:var(--mute);font-size:14px;padding:2px 6px;border-radius:4px}
+  .del-btn:hover{color:#f87171;background:rgba(248,113,113,.1)}
+  /* 手動追加フォーム */
+  .add-form{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:none}
+  .add-form.open{display:block}
+  .add-form h2{color:var(--gold);font-size:15px;margin:0 0 16px}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+  .form-grid label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mute)}
+  .form-grid input,.form-grid select{background:#0d1835;border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;outline:none}
+  .form-grid input:focus,.form-grid select:focus{border-color:var(--gold)}
+  .form-actions{display:flex;gap:10px;align-items:center}
+  .btn-add{background:var(--gold);color:#000;border:none;border-radius:8px;padding:8px 20px;font-weight:700;font-size:13px;cursor:pointer}
+  .btn-add:hover{opacity:.85}
+  .btn-cancel{background:none;border:1px solid var(--border);color:var(--mute);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer}
+  .form-msg{font-size:12px;margin-left:8px}
+  @media(max-width:680px){body{padding:12px}th.hide-sp,td.hide-sp{display:none}.form-grid{grid-template-columns:1fr 1fr}}
 </style>`;
+}
+
+// ── JST 現在日付を返す ────────────────────────────────────────
+function nowJST() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
 }
 
 // ── ダッシュボード HTML レンダリング ─────────────────────────
 function renderHTML({ rows, updatedAt, sort, filter }) {
+  // 7/1 JST 以降は 6/28 関連を非表示
+  const hide0628 = nowJST() >= new Date('2026-07-01T00:00:00+09:00');
+
+  // 非表示日程のデータは統計から除外
+  const activeRows = hide0628 ? rows.filter(r => r.ticketDate !== '0628') : rows;
+
   // フィルタ
   const filtered = filter && filter !== 'all'
-    ? rows.filter(r => r.ticketDate === filter)
-    : rows;
+    ? activeRows.filter(r => r.ticketDate === filter)
+    : activeRows;
 
   // ソート
   const sorted = [...filtered].sort((a, b) => {
@@ -191,25 +218,35 @@ function renderHTML({ rows, updatedAt, sort, filter }) {
     return sort === 'asc' ? diff : -diff;
   });
 
-  // サマリー計算
-  const completed    = rows.filter(r => r.status === 'COMPLETED');
-  const pending      = rows.filter(r => r.status !== 'COMPLETED');
+  // サマリー計算（activeRows 基準）
+  const completed    = activeRows.filter(r => r.status === 'COMPLETED');
+  const pending      = activeRows.filter(r => r.status !== 'COMPLETED');
   const totalAmt     = completed.reduce((s, r) => s + r.amt, 0);
-  const count0628    = rows.filter(r => r.ticketDate === '0628').reduce((s, r) => s + r.qty, 0);
-  const count0725    = rows.filter(r => r.ticketDate === '0725').reduce((s, r) => s + r.qty, 0);
+  const count0628    = activeRows.filter(r => r.ticketDate === '0628').reduce((s, r) => s + r.qty, 0);
+  const count0725    = activeRows.filter(r => r.ticketDate === '0725').reduce((s, r) => s + r.qty, 0);
 
   const tableRows = sorted.map(r => {
-    const statusBadge = r.status === 'COMPLETED'
-      ? '<span class="badge badge-completed">✓ 完了</span>'
-      : `<span class="badge badge-pending">${r.status}</span>`;
+    const isManual = r.source === 'manual';
+    const statusBadge = isManual
+      ? '<span class="badge badge-manual">🏦 銀振</span>'
+      : r.status === 'COMPLETED'
+        ? '<span class="badge badge-completed">✓ 完了</span>'
+        : `<span class="badge badge-pending">${r.status}</span>`;
     const dateBadge = r.ticketDate === '0628'
       ? '<span class="badge badge-0628">6/28</span>'
       : r.ticketDate === '0725'
         ? '<span class="badge badge-0725">7/25</span>'
         : '<span class="badge badge-other">-</span>';
     const amtStr = r.amt > 0 ? `¥${r.amt.toLocaleString()}` : '-';
-    const cardStr = r.card ? `${r.card.brand} ****${r.card.last4}` : '-';
-    return `<tr>
+    const cardStr = isManual
+      ? (r.note ? `<span style="color:var(--mute);font-size:11px">${r.note}</span>` : '-')
+      : r.card ? `${r.card.brand} ****${r.card.last4}` : '-';
+    const delBtn = isManual
+      ? `<form method="POST" action="/yosyuku/api/manual?action=delete&id=${r.id}" style="display:inline" onsubmit="return confirm('削除しますか？')">
+           <button class="del-btn" type="submit" title="削除">🗑</button>
+         </form>`
+      : '';
+    return `<tr${isManual ? ' style="background:rgba(251,146,60,.04)"' : ''}>
   <td style="white-space:nowrap">${r.date}</td>
   <td>${statusBadge}</td>
   <td>${dateBadge}</td>
@@ -218,6 +255,7 @@ function renderHTML({ rows, updatedAt, sort, filter }) {
   <td>${r.name || '-'}</td>
   <td class="hide-sp" style="font-size:12px">${r.email || '-'}</td>
   <td class="hide-sp" style="font-size:12px;color:var(--mute)">${cardStr}</td>
+  <td>${delBtn}</td>
 </tr>`;
   }).join('');
 
@@ -237,7 +275,10 @@ function renderHTML({ rows, updatedAt, sort, filter }) {
 ${css()}
 </head>
 <body>
-<h1>✨ カンボジア花火2026 予祝会 申込ダッシュボード</h1>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px">
+  <h1>✨ カンボジア花火2026 予祝会 申込ダッシュボード</h1>
+  <button onclick="toggleForm()" style="background:rgba(251,146,60,.15);border:1px solid rgba(251,146,60,.4);color:#fb923c;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer">🏦 銀振り手動追加</button>
+</div>
 <p class="sub">最終更新: ${updatedAt}　<a href="/yosyuku/dashboard" style="color:var(--gold);font-size:12px">↻ 更新</a></p>
 
 <div class="stats">
@@ -253,13 +294,46 @@ ${css()}
     <div class="stat__num" style="color:#facc15">${pending.length}</div>
     <div class="stat__label">PENDING 件数</div>
   </div>
-  <div class="stat" style="border-color:rgba(96,165,250,.3)">
+  ${!hide0628 ? `<div class="stat" style="border-color:rgba(96,165,250,.3)">
     <div class="stat__num" style="color:var(--accent-0628)">${count0628}</div>
     <div class="stat__label">6/28 参加人数</div>
-  </div>
+  </div>` : ''}
   <div class="stat" style="border-color:rgba(167,139,250,.3)">
     <div class="stat__num" style="color:var(--accent-0725)">${count0725}</div>
     <div class="stat__label">7/25 参加人数</div>
+  </div>
+</div>
+
+<!-- 手動追加フォーム -->
+<div class="add-form" id="addForm">
+  <h2>🏦 銀行振込 手動追加</h2>
+  <div class="form-grid">
+    <label>氏名 <span style="color:#f87171">*</span>
+      <input id="f-name" placeholder="山田 太郎" required>
+    </label>
+    <label>参加日 <span style="color:#f87171">*</span>
+      <select id="f-date">
+        ${!hide0628 ? '<option value="0628">6月28日（土）</option>' : ''}
+        <option value="0725">7月25日（金）</option>
+      </select>
+    </label>
+    <label>枚数
+      <input id="f-qty" type="number" value="1" min="1" max="20">
+    </label>
+    <label>金額（円）
+      <input id="f-amt" type="number" value="7700" min="0">
+    </label>
+    <label>メールアドレス
+      <input id="f-email" type="email" placeholder="example@mail.com">
+    </label>
+    <label>メモ（備考）
+      <input id="f-note" placeholder="振込確認済など">
+    </label>
+  </div>
+  <div class="form-actions">
+    <button class="btn-add" onclick="submitManual()">追加する</button>
+    <button class="btn-cancel" onclick="toggleForm()">キャンセル</button>
+    <span class="form-msg" id="formMsg"></span>
   </div>
 </div>
 
@@ -269,7 +343,7 @@ ${css()}
   <a href="${sortAscUrl}"  class="${!isDesc ? 'active' : ''}">申込日 ↑ 古い順</a>
   <span style="color:var(--mute);font-size:11px;margin-left:8px">フィルター：</span>
   <a href="${filterAllUrl}"  class="${!filter || filter === 'all'  ? 'active' : ''}">全部</a>
-  <a href="${filter0628Url}" class="${filter === '0628' ? 'active' : ''}">6/28のみ</a>
+  ${!hide0628 ? `<a href="${filter0628Url}" class="${filter === '0628' ? 'active' : ''}">6/28のみ</a>` : ''}
   <a href="${filter0725Url}" class="${filter === '0725' ? 'active' : ''}">7/25のみ</a>
 </div>
 
@@ -284,16 +358,101 @@ ${sorted.length === 0
   <th style="text-align:right">金額</th>
   <th>氏名</th>
   <th class="hide-sp">メールアドレス</th>
-  <th class="hide-sp">カード</th>
+  <th class="hide-sp">カード / メモ</th>
+  <th></th>
 </tr></thead>
 <tbody>${tableRows}</tbody>
 </table>`}
 
 <p style="color:var(--mute);font-size:11px;margin-top:8px">
   ※ Square決済情報をリアルタイム反映しています。<br>
-  ※ 参加日の判定は line_item 名に含まれる日付コード（0628 / 0725）で行います。
+  ※ 参加日の判定は line_item 名に含まれる日付コード（0628 / 0725）で行います。<br>
+  ※ 🏦 銀振 行は手動追加エントリです。🗑 ボタンで削除できます。
 </p>
+<script>
+function toggleForm(){
+  const f=document.getElementById('addForm');
+  f.classList.toggle('open');
+  if(f.classList.contains('open')) document.getElementById('f-name').focus();
+}
+async function submitManual(){
+  const name=document.getElementById('f-name').value.trim();
+  const ticketDate=document.getElementById('f-date').value;
+  const qty=parseInt(document.getElementById('f-qty').value)||1;
+  const amt=parseInt(document.getElementById('f-amt').value)||qty*7700;
+  const email=document.getElementById('f-email').value.trim();
+  const note=document.getElementById('f-note').value.trim();
+  const msg=document.getElementById('formMsg');
+  if(!name){msg.textContent='氏名を入力してください';msg.style.color='#f87171';return;}
+  msg.textContent='送信中…';msg.style.color='var(--mute)';
+  try{
+    const r=await fetch('/yosyuku/api/manual',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,ticketDate,qty,amt,email,note})
+    });
+    const d=await r.json();
+    if(d.success){location.reload();}
+    else{msg.textContent=d.error||'エラーが発生しました';msg.style.color='#f87171';}
+  }catch(e){msg.textContent='通信エラー';msg.style.color='#f87171';}
+}
+</script>
 </body></html>`;
+}
+
+// ── KV: 手動エントリ CRUD ────────────────────────────────────
+const KV_KEY = 'entries';
+
+async function kvGetEntries(env) {
+  if (!env.YOSYUKU_MANUAL) return [];
+  const raw = await env.YOSYUKU_MANUAL.get(KV_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+async function kvSaveEntries(env, entries) {
+  await env.YOSYUKU_MANUAL.put(KV_KEY, JSON.stringify(entries));
+}
+
+// POST /yosyuku/api/manual → 手動エントリ追加 / 削除
+async function handleManual(request, env) {
+  const url    = new URL(request.url);
+  const action = url.searchParams.get('action') || 'add';
+
+  if (action === 'delete') {
+    const id      = url.searchParams.get('id');
+    const entries = await kvGetEntries(env);
+    await kvSaveEntries(env, entries.filter(e => e.id !== id));
+    return new Response(null, { status: 303, headers: { Location: '/yosyuku/dashboard' } });
+  }
+
+  // add
+  let body;
+  try { body = await request.json(); } catch { body = {}; }
+
+  const { name, email, phone, ticketDate, qty: rawQty, amt: rawAmt, note } = body;
+  if (!name || !ticketDate) {
+    return jsonResponse({ success: false, error: '氏名と参加日は必須です' }, 400);
+  }
+  const qty = Math.max(1, parseInt(rawQty, 10) || 1);
+  const amt = rawAmt != null ? parseInt(rawAmt, 10) : qty * 7700;
+
+  const entry = {
+    id:         crypto.randomUUID(),
+    name:       String(name).slice(0, 60),
+    email:      String(email || '').slice(0, 80),
+    phone:      String(phone || '').slice(0, 20),
+    ticketDate: ticketDate === '0628' ? '0628' : '0725',
+    qty,
+    amt,
+    note:       String(note || '').slice(0, 100),
+    createdAt:  new Date().toISOString(),
+    source:     'manual',
+  };
+
+  const entries = await kvGetEntries(env);
+  entries.push(entry);
+  await kvSaveEntries(env, entries);
+  return jsonResponse({ success: true, id: entry.id });
 }
 
 // ── GET /yosyuku/dashboard ────────────────────────────────────
@@ -377,8 +536,29 @@ async function handleDashboard(request, env) {
         };
       });
 
+    // 4. 手動エントリ（KV）を取得してマージ
+    const manualEntries = await kvGetEntries(env);
+    const manualRows = manualEntries
+      .filter(e => !hide0628 || e.ticketDate !== '0628')  // 7/1以降は0628非表示
+      .map(e => ({
+        id:         e.id,
+        rawDate:    e.createdAt,
+        date:       new Date(e.createdAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
+        status:     'MANUAL',
+        ticketDate: e.ticketDate,
+        qty:        e.qty,
+        amt:        e.amt,
+        email:      e.email,
+        name:       e.name,
+        phone:      e.phone,
+        note:       e.note,
+        card:       null,
+        source:     'manual',
+      }));
+
+    const allRows = [...rows, ...manualRows];
     const updatedAt = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
-    return new Response(renderHTML({ rows, updatedAt, sort, filter }), {
+    return new Response(renderHTML({ rows: allRows, updatedAt, sort, filter }), {
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
 
@@ -411,6 +591,12 @@ export default {
     // 公開 API: /yosyuku/api/checkout（Basic Auth スキップ）
     if (path === '/yosyuku/api/checkout') {
       return handleCheckout(request, env);
+    }
+
+    // 手動エントリ API（Basic Auth 必須）
+    if (path === '/yosyuku/api/manual') {
+      if (!checkAuth(request)) return unauthorized();
+      return handleManual(request, env);
     }
 
     // ダッシュボード: Basic Auth 必須
