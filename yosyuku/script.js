@@ -11,7 +11,7 @@
 const header = document.getElementById('header');
 if (header) {
   window.addEventListener('scroll', () => {
-    header.classList.toggle('scrolled', window.scrollY > 60);
+    header.classList.toggle('is-scrolled', window.scrollY > 60);
   }, { passive: true });
 }
 
@@ -20,7 +20,7 @@ const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        e.target.classList.add('visible');
+        e.target.classList.add('is-visible');
         observer.unobserve(e.target);
       }
     });
