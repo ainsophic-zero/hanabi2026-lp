@@ -18,13 +18,13 @@ const LINE_URL     = 'https://line.me/ti/g/ea9AdppvxE';
 // 予祝チケット定義（TODO: 価格は確定次第変更）
 const TICKET_CATALOG = {
   '0628': {
-    label:      '予祝会チケット｜6月28日（土）',
+    label:      '予祝会チケット｜6月28日（日）',
     squareName: 'カンボジア花火2026予祝会｜0628',
     price:      7700,
     date:       '2026-06-28',
   },
   '0725': {
-    label:      '予祝会チケット｜7月25日（金）',
+    label:      '予祝会チケット｜7月25日（土）',
     squareName: 'カンボジア花火2026予祝会｜0725',
     price:      7700,
     date:       '2026-07-25',
@@ -313,8 +313,8 @@ ${css()}
     </label>
     <label>参加日 <span style="color:#f87171">*</span>
       <select id="f-date">
-        ${!hide0628 ? '<option value="0628">6月28日（土）</option>' : ''}
-        <option value="0725">7月25日（金）</option>
+        ${!hide0628 ? '<option value="0628">6月28日（日）</option>' : ''}
+        <option value="0725">7月25日（土）</option>
       </select>
     </label>
     <label>枚数

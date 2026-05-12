@@ -124,7 +124,7 @@ function refreshCart() {
       if (submitText) submitText.textContent = '日付と枚数を選択してください';
     } else if (selected.length === 1) {
       submitBtn.disabled = false;
-      const label = selected[0] === '0628' ? '6月28日（土）' : '7月25日（金）';
+      const label = selected[0] === '0628' ? '6月28日（日）' : '7月25日（土）';
       const qty   = getQty(document.querySelector(`.cart__row[data-ticket="${selected[0]}"]`));
       if (submitText) submitText.textContent = `${label} × ${qty}枚　カードで申し込む →`;
     } else {
