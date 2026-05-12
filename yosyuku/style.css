@@ -5,8 +5,8 @@
 
 /* ── ベース変数 ─────────────────────────────── */
 :root {
-  --bg:        #060C06;
-  --bg2:       #0A140A;
+  --bg:        #0E1E0E;
+  --bg2:       #132213;
   --green:     #7DC24B;
   --green-d:   #5A9935;
   --green-l:   #A8D870;
@@ -14,10 +14,10 @@
   --gold-l:    #F0C860;
   --amber:     #C88020;
   --text:      #F0EDE6;
-  --sub:       #B8C8A8;
-  --mute:      #6A7A5A;
-  --card:      #0E180E;
-  --card2:     #131F10;
+  --sub:       #C4D4B0;
+  --mute:      #8A9A7A;
+  --card:      #1A2E1A;
+  --card2:     #1E3218;
   --border:    rgba(125,194,75,.2);
   --border2:   rgba(212,160,58,.25);
   --c0628:     #60a5fa;
@@ -95,10 +95,10 @@ em{font-style:normal;color:var(--green-l)}
   overflow:hidden;
 }
 .hero__bg{position:absolute;inset:0;z-index:0}
-.hero__img{width:100%;height:100%;object-fit:cover;opacity:.45}
+.hero__img{width:100%;height:100%;object-fit:cover;opacity:.85}
 .hero__overlay{
   position:absolute;inset:0;
-  background:linear-gradient(to bottom,rgba(6,12,6,.3) 0%,rgba(6,12,6,.6) 50%,rgba(6,12,6,.95) 100%);
+  background:linear-gradient(to bottom,rgba(6,12,6,.1) 0%,rgba(6,12,6,.35) 50%,rgba(6,12,6,.75) 100%);
 }
 
 /* 電球パーティクル */
