@@ -224,10 +224,10 @@ em{font-style:normal;color:var(--green-l)}
   font-family:'Noto Sans JP',sans-serif;
 }
 .btn--primary{
-  background:linear-gradient(135deg,var(--green),var(--green-d));
-  color:#060C06;
+  background:linear-gradient(135deg,#D48A18,#C07010);
+  color:#FFFFFF;
 }
-.btn--primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(125,194,75,.35);opacity:1;color:#060C06}
+.btn--primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,130,20,.4);opacity:1;color:#FFFFFF}
 .btn--ghost{
   background:rgba(0,0,0,.35);color:#FFFFFF;
   border:1px solid rgba(255,255,255,.55);
