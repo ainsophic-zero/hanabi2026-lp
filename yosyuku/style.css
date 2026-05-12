@@ -150,8 +150,8 @@ em{font-style:normal;color:var(--green-l)}
   max-width:720px;
 }
 .hero__eyebrow{
-  font-size:13px;letter-spacing:.2em;color:rgba(180,230,130,.9);
-  font-weight:700;margin-bottom:16px;display:block;
+  font-size:clamp(16px,3vw,22px);letter-spacing:.2em;color:rgba(180,230,130,.9);
+  font-weight:700;margin-bottom:20px;display:block;
   text-shadow:0 0 12px rgba(120,200,60,.4);
 }
 .hero__title{
